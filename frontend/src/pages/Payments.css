@@ -1,0 +1,4 @@
+.payments-page .payment-amount {
+  font-weight: 600;
+  color: var(--primary-color);
+}

@@ -1,0 +1,97 @@
+.approvals-page .approval-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.approvals-page .approval-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.approvals-page .approval-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.approvals-page .approval-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.approvals-page .approval-card-meta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.approvals-page .approval-card-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.approvals-page .approval-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.approvals-page .approval-comment {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.approvals-page .history-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.approvals-page .history-item:last-child {
+  border-bottom: none;
+}
+
+.approvals-page .history-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.approvals-page .history-icon.approved {
+  background: #f6ffed;
+  color: var(--success-color);
+}
+
+.approvals-page .history-icon.rejected {
+  background: #fff2f0;
+  color: var(--danger-color);
+}
+
+.approvals-page .history-info h4 {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 4px;
+}
+
+.approvals-page .history-info p {
+  font-size: 12px;
+  color: var(--text-muted);
+}

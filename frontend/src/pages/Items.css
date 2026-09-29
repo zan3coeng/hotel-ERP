@@ -1,0 +1,17 @@
+.items-page .unit-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #f0f5ff;
+  color: var(--primary-color);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.items-page .category-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #f6ffed;
+  color: var(--success-color);
+  border-radius: 4px;
+  font-size: 12px;
+}

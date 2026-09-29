@@ -1,0 +1,77 @@
+.purchase-requests-page .detail-section {
+  margin-bottom: 20px;
+}
+
+.purchase-requests-page .detail-section h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.purchase-requests-page .detail-items-table {
+  margin: 0;
+}
+
+.purchase-requests-page .detail-items-table th,
+.purchase-requests-page .detail-items-table td {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.purchase-requests-page .approval-history {
+  margin-top: 16px;
+}
+
+.purchase-requests-page .approval-record {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.purchase-requests-page .approval-record:last-child {
+  border-bottom: none;
+}
+
+.purchase-requests-page .approval-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.purchase-requests-page .approval-status-dot.approved {
+  background: var(--success-color);
+}
+
+.purchase-requests-page .approval-status-dot.rejected {
+  background: var(--danger-color);
+}
+
+.purchase-requests-page .approval-status-dot.pending {
+  background: var(--warning-color);
+}
+
+.purchase-requests-page .line-item-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.purchase-requests-page .line-item-row input,
+.purchase-requests-page .line-item-row select {
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+
+.purchase-requests-page .add-line-btn {
+  margin-top: 8px;
+}

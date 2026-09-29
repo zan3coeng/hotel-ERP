@@ -1,0 +1,33 @@
+.inventory-page .alert-row {
+  background: #fff2f0 !important;
+}
+
+.inventory-page .alert-row td {
+  color: var(--danger-color);
+}
+
+.inventory-page .stock-qty {
+  font-weight: 600;
+}
+
+.inventory-page .stock-qty.low {
+  color: var(--danger-color);
+}
+
+.inventory-page .stock-qty.warning {
+  color: var(--warning-color);
+}
+
+.inventory-page .stock-qty.normal {
+  color: var(--success-color);
+}
+
+.inventory-page .flow-section {
+  margin-top: 24px;
+}
+
+.inventory-page .flow-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}

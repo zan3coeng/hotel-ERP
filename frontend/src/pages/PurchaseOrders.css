@@ -1,0 +1,43 @@
+.purchase-orders-page .detail-section {
+  margin-bottom: 20px;
+}
+
+.purchase-orders-page .detail-section h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.purchase-orders-page .amount {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.purchase-orders-page .order-summary {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 0;
+  font-size: 15px;
+  font-weight: 600;
+  border-top: 1px solid var(--border-color);
+  margin-top: 8px;
+}
+
+.purchase-orders-page .receiving-record {
+  margin-top: 16px;
+}
+
+.purchase-orders-page .receiving-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+
+.purchase-orders-page .receiving-item:last-child {
+  border-bottom: none;
+}
