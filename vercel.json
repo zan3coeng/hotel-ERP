@@ -1,11 +1,23 @@
 {
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/dist",
-  "installCommand": "npm install",
+  "services": {
+    "web": {
+      "root": "frontend",
+      "buildCommand": "npm install && npm run build",
+      "outputDirectory": "dist"
+    },
+    "api": {
+      "root": ".",
+      "entrypoint": "api/index.js"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "/api/index"
+      "destination": "api"
+    },
+    {
+      "source": "/:path*",
+      "destination": "web"
     }
   ]
 }
