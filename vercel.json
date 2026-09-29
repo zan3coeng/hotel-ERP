@@ -1,20 +1,27 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "frontend/dist",
-  "installCommand": "npm install && cd frontend && npm install",
+  "services": [
+    {
+      "name": "web",
+      "type": "static",
+      "root": "frontend",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist"
+    },
+    {
+      "name": "api",
+      "type": "node",
+      "root": ".",
+      "entrypoint": "api/index.js"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "destination": "api"
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "web"
     }
-  ],
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 10
-    }
-  }
+  ]
 }
