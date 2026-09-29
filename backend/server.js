@@ -71,7 +71,7 @@ app.post('/api/auth/login', async (req, res) => {
     if (!valid) return fail(res, '用户名或密码错误');
 
     // 更新最后登录时间
-    await pool.query('UPDATE users SET last_login_at = NOW() WHERE id = ?', [user.id]);
+    await pool.query('UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
 
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role_code },
@@ -184,7 +184,7 @@ app.post('/api/suppliers', authMiddleware, async (req, res) => {
     success(res, { id }, '新增成功');
   } catch (err) {
     console.error('新增供应商失败:', err);
-    if (err.code === 'ER_DUP_ENTRY') return fail(res, '供应商编码已存在');
+    if (err.code === '23505') return fail(res, '供应商编码已存在');
     fail(res, '服务器错误', 500);
   }
 });
@@ -268,7 +268,7 @@ app.post('/api/items', authMiddleware, async (req, res) => {
     success(res, { id }, '新增成功');
   } catch (err) {
     console.error('新增物料失败:', err);
-    if (err.code === 'ER_DUP_ENTRY') return fail(res, '物料编码已存在');
+    if (err.code === '23505') return fail(res, '物料编码已存在');
     fail(res, '服务器错误', 500);
   }
 });
@@ -688,7 +688,7 @@ app.post('/api/contracts', authMiddleware, async (req, res) => {
     success(res, { id, contract_no: contractNo }, '新增成功');
   } catch (err) {
     console.error('新增合同失败:', err);
-    if (err.code === 'ER_DUP_ENTRY') return fail(res, '合同编号已存在');
+    if (err.code === '23505') return fail(res, '合同编号已存在');
     fail(res, '服务器错误', 500);
   }
 });
@@ -855,10 +855,10 @@ app.get('/api/reports/purchase-summary', authMiddleware, async (req, res) => {
 
     // 按月统计
     const [monthlySummary] = await pool.query(
-      `SELECT DATE_FORMAT(po.order_date, '%Y-%m') as month, COUNT(*) as count, SUM(po.total_amount) as total_amount
+      `SELECT TO_CHAR(po.order_date, 'YYYY-MM') as month, COUNT(*) as count, SUM(po.total_amount) as total_amount
        FROM purchase_orders po
        ${dateFilter ? dateFilter : ' WHERE 1=1'}
-       GROUP BY DATE_FORMAT(po.order_date, '%Y-%m')
+       GROUP BY TO_CHAR(po.order_date, 'YYYY-MM')
        ORDER BY month DESC`,
       params
     );

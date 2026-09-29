@@ -12,8 +12,10 @@ async function seedData() {
     { id: uuidv4(), name: '客房部', code: 'HOUSEKEEPING', description: '负责客房物资需求与管理' }
   ];
   for (const d of departments) {
-    await pool.query('INSERT IGNORE INTO departments (id, name, code, description) VALUES (?, ?, ?, ?)',
-      [d.id, d.name, d.code, d.description]);
+    await pool.query(
+      'INSERT INTO departments (id, name, code, description) VALUES ($1, $2, $3, $4) ON CONFLICT (code) DO NOTHING',
+      [d.id, d.name, d.code, d.description]
+    );
   }
   console.log('部门数据插入完成');
 
@@ -24,8 +26,10 @@ async function seedData() {
     { id: uuidv4(), name: '财务人员', code: 'finance', description: '财务审批与付款管理', permissions: JSON.stringify({ finance: true, approval: true, contracts: true, payments: true }) }
   ];
   for (const r of roles) {
-    await pool.query('INSERT IGNORE INTO roles (id, name, code, description, permissions) VALUES (?, ?, ?, ?, ?)',
-      [r.id, r.name, r.code, r.description, r.permissions]);
+    await pool.query(
+      'INSERT INTO roles (id, name, code, description, permissions) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (code) DO NOTHING',
+      [r.id, r.name, r.code, r.description, r.permissions]
+    );
   }
   console.log('角色数据插入完成');
 
@@ -40,7 +44,7 @@ async function seedData() {
   ];
   for (const u of users) {
     await pool.query(
-      'INSERT IGNORE INTO users (id, username, password_hash, real_name, department_id, role_id) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO users (id, username, password_hash, real_name, department_id, role_id) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (username) DO NOTHING',
       [u.id, u.username, u.password_hash, u.real_name, u.department_id, u.role_id]
     );
   }
@@ -55,8 +59,10 @@ async function seedData() {
     { id: uuidv4(), name: '饮品', code: 'BEVERAGE', description: '各类饮品' }
   ];
   for (const c of categories) {
-    await pool.query('INSERT IGNORE INTO item_categories (id, name, code, description) VALUES (?, ?, ?, ?)',
-      [c.id, c.name, c.code, c.description]);
+    await pool.query(
+      'INSERT INTO item_categories (id, name, code, description) VALUES ($1, $2, $3, $4) ON CONFLICT (code) DO NOTHING',
+      [c.id, c.name, c.code, c.description]
+    );
   }
   console.log('物料品类数据插入完成');
 
@@ -75,7 +81,7 @@ async function seedData() {
   ];
   for (const i of items) {
     await pool.query(
-      'INSERT IGNORE INTO items (id, name, code, specification, unit, category_id) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO items (id, name, code, specification, unit, category_id) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (code) DO NOTHING',
       [i.id, i.name, i.code, i.specification, i.unit, i.category_id]
     );
   }
@@ -91,8 +97,8 @@ async function seedData() {
   ];
   for (const s of suppliers) {
     await pool.query(
-      `INSERT IGNORE INTO suppliers (id, name, code, contact_person, phone, email, address, bank_name, bank_account, tax_number, rating)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO suppliers (id, name, code, contact_person, phone, email, address, bank_name, bank_account, tax_number, rating)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (code) DO NOTHING`,
       [s.id, s.name, s.code, s.contact_person, s.phone, s.email, s.address, s.bank_name, s.bank_account, s.tax_number, s.rating]
     );
   }
@@ -113,8 +119,8 @@ async function seedData() {
   ];
   for (const q of quotes) {
     await pool.query(
-      `INSERT IGNORE INTO supplier_quotes (id, supplier_id, item_id, price, valid_from, valid_to, min_order_quantity, lead_time_days)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO supplier_quotes (id, supplier_id, item_id, price, valid_from, valid_to, min_order_quantity, lead_time_days)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO NOTHING`,
       [q.id, q.supplier_id, q.item_id, q.price, q.valid_from, q.valid_to, q.min_order_quantity, q.lead_time_days]
     );
   }
@@ -130,8 +136,8 @@ async function seedData() {
   ];
   for (const pr of prs) {
     await pool.query(
-      `INSERT IGNORE INTO purchase_requests (id, request_no, title, description, status, priority, request_date, required_date, requester_id, department_id, total_amount)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO purchase_requests (id, request_no, title, description, status, priority, request_date, required_date, requester_id, department_id, total_amount)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (request_no) DO NOTHING`,
       [pr.id, pr.request_no, pr.title, pr.description, pr.status, pr.priority, pr.request_date, pr.required_date, pr.requester_id, pr.department_id, pr.total_amount]
     );
   }
@@ -151,7 +157,7 @@ async function seedData() {
   ];
   for (const pri of prItems) {
     await pool.query(
-      'INSERT IGNORE INTO purchase_request_items (id, request_id, item_id, quantity, estimated_price) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO purchase_request_items (id, request_id, item_id, quantity, estimated_price) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING',
       [pri.id, pri.request_id, pri.item_id, pri.quantity, pri.estimated_price]
     );
   }
@@ -165,8 +171,8 @@ async function seedData() {
   ];
   for (const po of pos) {
     await pool.query(
-      `INSERT IGNORE INTO purchase_orders (id, order_no, request_id, title, description, status, supplier_id, order_date, expected_delivery_date, total_amount, payment_terms, delivery_address, contact_person, contact_phone, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO purchase_orders (id, order_no, request_id, title, description, status, supplier_id, order_date, expected_delivery_date, total_amount, payment_terms, delivery_address, contact_person, contact_phone, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) ON CONFLICT (order_no) DO NOTHING`,
       [po.id, po.order_no, po.request_id, po.title, po.description, po.status, po.supplier_id, po.order_date, po.expected_delivery_date, po.total_amount, po.payment_terms, po.delivery_address, po.contact_person, po.contact_phone, po.created_by]
     );
   }
@@ -183,7 +189,7 @@ async function seedData() {
   ];
   for (const poi of poItems) {
     await pool.query(
-      `INSERT IGNORE INTO po_items (id, po_id, item_id, quantity, unit_price, amount, received_quantity) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO po_items (id, po_id, item_id, quantity, unit_price, amount, received_quantity) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (id) DO NOTHING`,
       [poi.id, poi.po_id, poi.item_id, poi.quantity, poi.unit_price, poi.amount, poi.received_quantity]
     );
   }
@@ -196,8 +202,8 @@ async function seedData() {
   ];
   for (const r of receipts) {
     await pool.query(
-      `INSERT IGNORE INTO receipts (id, receipt_no, po_id, receipt_date, supplier_id, warehouse, receiver_id, status, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO receipts (id, receipt_no, po_id, receipt_date, supplier_id, warehouse, receiver_id, status, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (receipt_no) DO NOTHING`,
       [r.id, r.receipt_no, r.po_id, r.receipt_date, r.supplier_id, r.warehouse, r.receiver_id, r.status, r.notes]
     );
   }
@@ -210,8 +216,8 @@ async function seedData() {
   ];
   for (const c of contracts) {
     await pool.query(
-      `INSERT IGNORE INTO contracts (id, contract_no, title, supplier_id, type, amount, start_date, end_date, status, terms, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO contracts (id, contract_no, title, supplier_id, type, amount, start_date, end_date, status, terms, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT (contract_no) DO NOTHING`,
       [c.id, c.contract_no, c.title, c.supplier_id, c.type, c.amount, c.start_date, c.end_date, c.status, c.terms, c.created_by]
     );
   }
@@ -225,8 +231,8 @@ async function seedData() {
   ];
   for (const p of payments) {
     await pool.query(
-      `INSERT IGNORE INTO payments (id, payment_no, po_id, contract_id, supplier_id, amount, payment_date, payment_method, status, reference_no, notes, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO payments (id, payment_no, po_id, contract_id, supplier_id, amount, payment_date, payment_method, status, reference_no, notes, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT (payment_no) DO NOTHING`,
       [p.id, p.payment_no, p.po_id, p.contract_id, p.supplier_id, p.amount, p.payment_date, p.payment_method, p.status, p.reference_no, p.notes, p.created_by]
     );
   }
@@ -247,8 +253,8 @@ async function seedData() {
   ];
   for (const inv of inventoryData) {
     await pool.query(
-      `INSERT IGNORE INTO inventory (id, item_id, warehouse, quantity, min_quantity, max_quantity, unit_cost, last_in_date)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO inventory (id, item_id, warehouse, quantity, min_quantity, max_quantity, unit_cost, last_in_date)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (item_id) DO NOTHING`,
       [inv.id, inv.item_id, inv.warehouse, inv.quantity, inv.min_quantity, inv.max_quantity, inv.unit_cost, inv.last_in_date]
     );
   }
@@ -261,7 +267,7 @@ async function seedData() {
   ];
   for (const w of workflows) {
     await pool.query(
-      'INSERT IGNORE INTO workflow_definitions (id, name, code, description, entity_type, steps) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO workflow_definitions (id, name, code, description, entity_type, steps) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (code) DO NOTHING',
       [w.id, w.name, w.code, w.description, w.entity_type, w.steps]
     );
   }
@@ -275,8 +281,8 @@ async function seedData() {
   ];
   for (const ai of approvalInstances) {
     await pool.query(
-      `INSERT IGNORE INTO approval_instances (id, workflow_definition_id, entity_type, entity_id, title, status, current_step, initiator_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO approval_instances (id, workflow_definition_id, entity_type, entity_id, title, status, current_step, initiator_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO NOTHING`,
       [ai.id, ai.workflow_definition_id, ai.entity_type, ai.entity_id, ai.title, ai.status, ai.current_step, ai.initiator_id]
     );
   }
@@ -291,7 +297,7 @@ async function seedData() {
   ];
   for (const ah of approvalHistory) {
     await pool.query(
-      'INSERT IGNORE INTO approval_history (id, approval_instance_id, step, approver_id, action, comment) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO approval_history (id, approval_instance_id, step, approver_id, action, comment) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO NOTHING',
       [ah.id, ah.approval_instance_id, ah.step, ah.approver_id, ah.action, ah.comment]
     );
   }

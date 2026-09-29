@@ -3,11 +3,25 @@ const pool = require('./db');
 async function initDatabase() {
   console.log('开始初始化数据库...');
 
-  const createDatabase = `CREATE DATABASE IF NOT EXISTS hotel_erp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`;
-  await pool.query(createDatabase);
-  console.log('数据库 hotel_erp 已就绪');
+  // 创建 UUID 扩展（如果不存在）
+  try {
+    await pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+    console.log('UUID 扩展已就绪');
+  } catch (err) {
+    console.log('UUID 扩展创建跳过:', err.message);
+  }
 
-  await pool.query('USE hotel_erp');
+  // 创建自动更新 updated_at 字段的触发器函数
+  await pool.query(`
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      NEW.updated_at = CURRENT_TIMESTAMP;
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql
+  `);
+  console.log('updated_at 触发器函数已创建');
 
   // ==================== 部门表 ====================
   await pool.query(`
@@ -18,8 +32,15 @@ async function initDatabase() {
       description TEXT,
       manager_id CHAR(36),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS departments_updated_at ON departments;
+    CREATE TRIGGER departments_updated_at
+      BEFORE UPDATE ON departments
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 角色表 ====================
@@ -31,8 +52,15 @@ async function initDatabase() {
       description TEXT,
       permissions JSON,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS roles_updated_at ON roles;
+    CREATE TRIGGER roles_updated_at
+      BEFORE UPDATE ON roles
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 用户表 ====================
@@ -46,13 +74,20 @@ async function initDatabase() {
       phone VARCHAR(50),
       department_id CHAR(36),
       role_id CHAR(36),
-      is_active TINYINT(1) DEFAULT 1,
+      is_active SMALLINT DEFAULT 1,
       last_login_at TIMESTAMP NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (department_id) REFERENCES departments(id),
       FOREIGN KEY (role_id) REFERENCES roles(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS users_updated_at ON users;
+    CREATE TRIGGER users_updated_at
+      BEFORE UPDATE ON users
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 物料品类表 ====================
@@ -63,11 +98,18 @@ async function initDatabase() {
       code VARCHAR(50) NOT NULL UNIQUE,
       description TEXT,
       parent_id CHAR(36),
-      is_active TINYINT(1) DEFAULT 1,
+      is_active SMALLINT DEFAULT 1,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (parent_id) REFERENCES item_categories(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS item_categories_updated_at ON item_categories;
+    CREATE TRIGGER item_categories_updated_at
+      BEFORE UPDATE ON item_categories
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 物料表 ====================
@@ -80,11 +122,18 @@ async function initDatabase() {
       unit VARCHAR(50) NOT NULL,
       category_id CHAR(36),
       description TEXT,
-      is_active TINYINT(1) DEFAULT 1,
+      is_active SMALLINT DEFAULT 1,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (category_id) REFERENCES item_categories(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS items_updated_at ON items;
+    CREATE TRIGGER items_updated_at
+      BEFORE UPDATE ON items
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 供应商表 ====================
@@ -101,10 +150,17 @@ async function initDatabase() {
       bank_account VARCHAR(100),
       tax_number VARCHAR(100),
       rating DECIMAL(3,2) DEFAULT 0,
-      is_active TINYINT(1) DEFAULT 1,
+      is_active SMALLINT DEFAULT 1,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS suppliers_updated_at ON suppliers;
+    CREATE TRIGGER suppliers_updated_at
+      BEFORE UPDATE ON suppliers
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 供应商报价表 ====================
@@ -119,12 +175,19 @@ async function initDatabase() {
       valid_to DATE,
       min_order_quantity INT DEFAULT 1,
       lead_time_days INT DEFAULT 7,
-      is_active TINYINT(1) DEFAULT 1,
+      is_active SMALLINT DEFAULT 1,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
       FOREIGN KEY (item_id) REFERENCES items(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS supplier_quotes_updated_at ON supplier_quotes;
+    CREATE TRIGGER supplier_quotes_updated_at
+      BEFORE UPDATE ON supplier_quotes
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 采购需求表 ====================
@@ -144,10 +207,17 @@ async function initDatabase() {
       total_amount DECIMAL(12,2) DEFAULT 0,
       approval_instance_id CHAR(36),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (requester_id) REFERENCES users(id),
       FOREIGN KEY (department_id) REFERENCES departments(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS purchase_requests_updated_at ON purchase_requests;
+    CREATE TRIGGER purchase_requests_updated_at
+      BEFORE UPDATE ON purchase_requests
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 采购需求明细表 ====================
@@ -162,7 +232,7 @@ async function initDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (request_id) REFERENCES purchase_requests(id) ON DELETE CASCADE,
       FOREIGN KEY (item_id) REFERENCES items(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
   `);
 
   // ==================== 审批流程定义表 ====================
@@ -174,10 +244,17 @@ async function initDatabase() {
       description TEXT,
       entity_type VARCHAR(50) NOT NULL,
       steps JSON NOT NULL,
-      is_active TINYINT(1) DEFAULT 1,
+      is_active SMALLINT DEFAULT 1,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS workflow_definitions_updated_at ON workflow_definitions;
+    CREATE TRIGGER workflow_definitions_updated_at
+      BEFORE UPDATE ON workflow_definitions
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 审批实例表 ====================
@@ -192,10 +269,17 @@ async function initDatabase() {
       current_step INT DEFAULT 0,
       initiator_id CHAR(36) NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (workflow_definition_id) REFERENCES workflow_definitions(id),
       FOREIGN KEY (initiator_id) REFERENCES users(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS approval_instances_updated_at ON approval_instances;
+    CREATE TRIGGER approval_instances_updated_at
+      BEFORE UPDATE ON approval_instances
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 审批历史表 ====================
@@ -210,7 +294,7 @@ async function initDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (approval_instance_id) REFERENCES approval_instances(id),
       FOREIGN KEY (approver_id) REFERENCES users(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
   `);
 
   // ==================== 采购订单表 ====================
@@ -232,11 +316,18 @@ async function initDatabase() {
       contact_phone VARCHAR(50),
       created_by CHAR(36) NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (request_id) REFERENCES purchase_requests(id),
       FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
       FOREIGN KEY (created_by) REFERENCES users(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS purchase_orders_updated_at ON purchase_orders;
+    CREATE TRIGGER purchase_orders_updated_at
+      BEFORE UPDATE ON purchase_orders
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 采购订单明细表 ====================
@@ -253,7 +344,7 @@ async function initDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (po_id) REFERENCES purchase_orders(id) ON DELETE CASCADE,
       FOREIGN KEY (item_id) REFERENCES items(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
   `);
 
   // ==================== 收货记录表 ====================
@@ -269,11 +360,18 @@ async function initDatabase() {
       status VARCHAR(20) DEFAULT 'partial',
       notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (po_id) REFERENCES purchase_orders(id),
       FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
       FOREIGN KEY (receiver_id) REFERENCES users(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS receipts_updated_at ON receipts;
+    CREATE TRIGGER receipts_updated_at
+      BEFORE UPDATE ON receipts
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 收货明细表 ====================
@@ -290,7 +388,7 @@ async function initDatabase() {
       FOREIGN KEY (receipt_id) REFERENCES receipts(id) ON DELETE CASCADE,
       FOREIGN KEY (po_item_id) REFERENCES po_items(id),
       FOREIGN KEY (item_id) REFERENCES items(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
   `);
 
   // ==================== 合同表 ====================
@@ -309,10 +407,17 @@ async function initDatabase() {
       attachments JSON,
       created_by CHAR(36) NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
       FOREIGN KEY (created_by) REFERENCES users(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS contracts_updated_at ON contracts;
+    CREATE TRIGGER contracts_updated_at
+      BEFORE UPDATE ON contracts
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 付款记录表 ====================
@@ -331,12 +436,19 @@ async function initDatabase() {
       notes TEXT,
       created_by CHAR(36) NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (po_id) REFERENCES purchase_orders(id),
       FOREIGN KEY (contract_id) REFERENCES contracts(id),
       FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
       FOREIGN KEY (created_by) REFERENCES users(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS payments_updated_at ON payments;
+    CREATE TRIGGER payments_updated_at
+      BEFORE UPDATE ON payments
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 发票表 ====================
@@ -352,10 +464,17 @@ async function initDatabase() {
       status VARCHAR(20) DEFAULT 'pending',
       notes TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (po_id) REFERENCES purchase_orders(id),
       FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS invoices_updated_at ON invoices;
+    CREATE TRIGGER invoices_updated_at
+      BEFORE UPDATE ON invoices
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 库存表 ====================
@@ -371,9 +490,16 @@ async function initDatabase() {
       last_in_date DATE,
       last_out_date DATE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (item_id) REFERENCES items(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
+  `);
+  await pool.query(`
+    DROP TRIGGER IF EXISTS inventory_updated_at ON inventory;
+    CREATE TRIGGER inventory_updated_at
+      BEFORE UPDATE ON inventory
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column()
   `);
 
   // ==================== 库存事务表 ====================
@@ -391,7 +517,7 @@ async function initDatabase() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (item_id) REFERENCES items(id),
       FOREIGN KEY (operator_id) REFERENCES users(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
   `);
 
   // ==================== 审计日志表 ====================
@@ -406,7 +532,7 @@ async function initDatabase() {
       ip_address VARCHAR(50),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    )
   `);
 
   console.log('所有数据表创建完成！');
