@@ -892,7 +892,11 @@ app.get('/api/reports/supplier-performance', authMiddleware, async (req, res) =>
 
 // ==================== 启动服务器 ====================
 
-app.listen(PORT, () => {
-  console.log(`酒店ERP后端服务已启动，端口: ${PORT}`);
-  console.log(`API地址: http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`酒店ERP后端服务已启动，端口: ${PORT}`);
+    console.log(`API地址: http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

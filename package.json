@@ -1,0 +1,21 @@
+{
+  "name": "hotel-erp",
+  "version": "1.0.0",
+  "description": "酒店ERP系统 - 采购与库存管理",
+  "scripts": {
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "build": "cd frontend && npm run build",
+    "init-db": "cd backend && node init-db.js && node seed.js",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.11.3",
+    "serverless-http": "^3.2.0",
+    "uuid": "^9.0.0"
+  }
+}
