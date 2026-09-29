@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: hotel-erp-backend
+    runtime: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node start.js
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hotel-erp-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+    plan: free
+    autoDeploy: yes
+
+  - type: static
+    name: hotel-erp-frontend
+    buildCommand: cd frontend && npm install && npm run build
+    publishDir: frontend/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://hotel-erp-backend.onrender.com
+    plan: free
+    autoDeploy: yes
+
+databases:
+  - name: hotel-erp-db
+    databaseName: hotel_erp
+    user: hotel_erp_user
+    plan: free
+    ipAllowList: []
