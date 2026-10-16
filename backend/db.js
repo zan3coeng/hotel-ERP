@@ -25,12 +25,23 @@ function convertPlaceholders(sql) {
   });
 }
 
+// Neon 冷启动时首次连接可能被中断，针对连接类错误重试一次
+function isRetryableConnectionError(err) {
+  const msg = (err && err.message) || '';
+  return msg.includes('Connection terminated') || msg.includes('connection timeout') || err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT';
+}
+
 // 兼容 mysql2 的 query 方法：返回 [rows, fields]
 async function query(sql, params = []) {
   const convertedSql = convertPlaceholders(sql);
-  const result = await originalQuery(convertedSql, params);
-  // 返回与 mysql2 兼容的格式：[rows, fields]
-  return [result.rows, result.fields];
+  try {
+    const result = await originalQuery(convertedSql, params);
+    return [result.rows, result.fields];
+  } catch (err) {
+    if (!isRetryableConnectionError(err)) throw err;
+    const result = await originalQuery(convertedSql, params);
+    return [result.rows, result.fields];
+  }
 }
 
 // 兼容 mysql2 的 getConnection 方法
