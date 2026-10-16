@@ -27,6 +27,10 @@ export default function Login() {
     try {
       const res = await auth.login(form);
       const { token, user } = res.data || res;
+      if (!token || !user) {
+        setError('登录失败，请检查用户名和密码');
+        return;
+      }
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       navigate('/dashboard');

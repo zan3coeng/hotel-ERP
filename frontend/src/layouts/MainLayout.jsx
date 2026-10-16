@@ -35,7 +35,13 @@ export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  let user = {};
+  try {
+    user = JSON.parse(localStorage.getItem('user')) || {};
+  } catch {
+    // localStorage 中的 user 数据损坏（如旧版本写入的 "undefined"），忽略并清理
+    localStorage.removeItem('user');
+  }
 
   const handleLogout = () => {
     if (window.confirm('确定要退出登录吗？')) {
