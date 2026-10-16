@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'hotel-erp-demo-secret-key';
 
 // CORS 配置 - 支持环境变量配置允许的来源
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176')
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,https://hotel-erp-orpin.vercel.app')
   .split(',')
   .map(origin => origin.trim())
   .filter(Boolean);
