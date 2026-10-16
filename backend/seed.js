@@ -34,7 +34,7 @@ async function seedData() {
   console.log('角色数据插入完成');
 
   // ==================== 用户 ====================
-  const passwordHash = await bcrypt.hash('123456', 10);
+  const passwordHash = await bcrypt.hash('admin123', 10);
   const users = [
     { id: uuidv4(), username: 'admin', password_hash: passwordHash, real_name: '管理员', department_id: departments[0].id, role_id: roles[0].id },
     { id: uuidv4(), username: 'zhangsan', password_hash: passwordHash, real_name: '张三', department_id: departments[0].id, role_id: roles[1].id },
