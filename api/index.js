@@ -1,8 +1,4 @@
-const serverless = require('serverless-http');
+// Vercel 原生支持直接导出 Express app（作为 (req, res) 处理器）
 const app = require('../backend/server');
 
-const handler = serverless(app);
-
-module.exports = (req, res) => {
-  return handler(req, res);
-};
+module.exports = app;
